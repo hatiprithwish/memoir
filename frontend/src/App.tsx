@@ -7,6 +7,8 @@ import {
   UserButton,
   useUser,
 } from "@clerk/clerk-react";
+import "react-quill/dist/quill.snow.css";
+import TextEditor from "./components/TextEditor";
 
 function App() {
   const { user } = useUser();
@@ -48,7 +50,9 @@ function App() {
         </SignedIn>
       </header>
 
-      <p className="bg-blue-200">{dbUser}</p>
+      <main>
+        <TextEditor />
+      </main>
     </>
   );
 }

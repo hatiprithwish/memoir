@@ -3,7 +3,6 @@ import { User } from "../models/user.models.js";
 export const fetchUser = async (req, res) => {
   try {
     const { userId, username } = req.body;
-    console.log(userId, username);
 
     let dbUser = await User.findOne({ userId: userId });
     if (!dbUser) {

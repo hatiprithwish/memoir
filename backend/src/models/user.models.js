@@ -6,16 +6,21 @@ const userSchema = new Schema(
       type: String,
       unique: true,
       required: true,
+      index: true,
     },
     username: {
       type: String,
       unique: true,
       required: true,
     },
-    // password: {
-    //   type: String,
-    //   required: true,
-    // },
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    avatar: {
+      type: String,
+    },
     notes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Note" }],
   },
   { timestamps: true }

@@ -4,12 +4,16 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
+  useAuth,
   UserButton,
   useUser,
 } from "@clerk/clerk-react";
+import "react-quill/dist/quill.snow.css";
+import TextEditor from "./components/TextEditor";
 
 function App() {
   const { user } = useUser();
+  const { getToken } = useAuth();
   let dbUser;
   const getUser = async () => {
     try {
@@ -26,7 +30,7 @@ function App() {
         body: JSON.stringify({ userId, username }),
       });
       dbUser = await data.json();
-      console.log(dbUser);
+      // console.log(dbUser);
       return dbUser;
     } catch (error: any) {
       console.error(`${error.message}`);
@@ -37,9 +41,21 @@ function App() {
     getUser();
   }, [user]);
 
+  useEffect(() => {
+    const token = getToken();
+
+    fetch("http://localhost:8000/protected-route", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+  });
+
   return (
     <>
-      <header>
+      <header className="flex-none flex justify-end">
         <SignedOut>
           <SignInButton />
         </SignedOut>
@@ -48,7 +64,9 @@ function App() {
         </SignedIn>
       </header>
 
-      <p className="bg-blue-200">{dbUser}</p>
+      <main className="flex-1 mt-16">
+        <TextEditor />
+      </main>
     </>
   );
 }

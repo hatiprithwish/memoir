@@ -1,9 +1,11 @@
 import Router from "express";
 import {
+  acquireNoteLock,
   createNote,
   createPrivatelySharedNote,
   getPrivatelySharedNote,
   getSharedNote,
+  releaseNoteLock,
   updateNote,
 } from "../controllers/note.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
@@ -22,5 +24,8 @@ router
   .route("/private-share/:id")
   .post(ClerkExpressWithAuth(), createPrivatelySharedNote)
   .get(ClerkExpressWithAuth(), getPrivatelySharedNote);
+
+router.route("/acquireNoteLock").post(ClerkExpressWithAuth(), acquireNoteLock);
+router.route("/releaseNoteLock").post(ClerkExpressWithAuth(), releaseNoteLock);
 
 export default router;

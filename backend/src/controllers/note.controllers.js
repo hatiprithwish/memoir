@@ -168,3 +168,42 @@ export const getPrivatelySharedNote = async (req, res) => {
     });
   }
 };
+
+export const acquireNoteLock = async (req, res) => {
+  try {
+    const { noteId, username } = req.body;
+    const note = await Note.findById(noteId);
+
+    // Check if the note is already locked by another user
+    if (note.lockedBy && note.lockedBy !== username) {
+      return res.json({ success: false, lockedBy: note.lockedBy }); // Lock not acquired
+    }
+
+    // Acquire lock
+    await Note.findByIdAndUpdate(
+      noteId,
+      { $set: { lockedBy: username } },
+      { new: true, runValidators: false }
+    );
+
+    res.json({ success: true }); // Lock acquired
+  } catch (error) {
+    console.error(`Error acquiring lock: ${error.message}`);
+    res.status(500).json({ success: false });
+  }
+};
+
+export const releaseNoteLock = async (req, res) => {
+  try {
+    const { noteId } = req.body;
+    await Note.findByIdAndUpdate(
+      noteId,
+      { $set: { lockedBy: null } },
+      { new: true }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error releasing lock:", error);
+    res.status(500).json({ success: false });
+  }
+};

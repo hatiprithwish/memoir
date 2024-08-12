@@ -67,7 +67,7 @@ export const getSharedNote = async (req, res) => {
 
 export const createPrivatelySharedNote = async (req, res) => {
   try {
-    const { noteId, username } = req.body;
+    const { noteId, username, permission } = req.body;
 
     if (!noteId) {
       return res.status(400).json({ message: "No noteId found" });
@@ -93,7 +93,7 @@ export const createPrivatelySharedNote = async (req, res) => {
     if (!isAlreadyShared) {
       await Note.updateOne(
         { _id: objectId },
-        { $push: { sharedWith: dbUser._id } }
+        { $addToSet: { sharedWith: { user: dbUser._id, permission } } }
       );
     }
 
@@ -119,14 +119,21 @@ export const getPrivatelySharedNote = async (req, res) => {
     const note = await Note.findById(noteObjectId);
 
     const dbUser = await User.findOne({ username });
-    const isSharedWith = note.sharedWith.some((userId) =>
-      userId.equals(dbUser._id)
+    const isSharedWith = note.sharedWith.filter((item) =>
+      item.user.equals(dbUser?._id)
     );
     if (!dbUser || !isSharedWith) {
       return res.status(403).json("User doesn't have access to this note");
     } else {
       const decryptedContent = decryptNote(note.content);
-      return res.status(200).json(decryptedContent);
+
+      const response = {
+        note: decryptedContent,
+        permissionLevel: isSharedWith[0].permission,
+      };
+
+      console.log(response);
+      return res.status(200).json(response);
     }
   } catch (error) {
     console.error(`Failed to get privately shared note: ${error.message}`);

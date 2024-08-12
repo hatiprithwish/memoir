@@ -14,12 +14,13 @@ const TextEditor = () => {
 
   const closeModal = () => setIsModalOpen(false);
 
-  const postData = {
-    username: user?.username,
-    noteId: noteLink,
-  };
-
-  const handlePrivateShare = async () => {
+  const handlePrivateShare = async (permission: string) => {
+    const postData = {
+      username: user?.username,
+      noteId: noteLink,
+      permission: permission,
+    };
+    console.log(postData);
     await fetch(`http://localhost:8000/note/private-share/${noteLink}`, {
       method: "POST",
       headers: {
@@ -96,8 +97,23 @@ const TextEditor = () => {
               key={user._id}
               className="flex items-center gap-4 text-lg font-semibold my-4"
             >
-              {user.username}{" "}
-              <button onClick={handlePrivateShare}>Share</button>
+              {user.username}
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  handlePrivateShare("edit");
+                }}
+              >
+                Share for editing
+              </button>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  handlePrivateShare("read-only");
+                }}
+              >
+                Share for reading
+              </button>
             </div>
           ))}
       </ShareWithModal>

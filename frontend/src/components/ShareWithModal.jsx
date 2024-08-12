@@ -7,7 +7,7 @@ const ShareWithModal = ({ isOpen, onClose, children }) => {
       onClick={onClose}
     >
       <div
-        className="bg-black p-6 rounded-lg w-full max-w-lg relative"
+        className="bg-black p-6 rounded-lg w-full max-w-[900px] relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button

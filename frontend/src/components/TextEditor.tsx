@@ -1,13 +1,38 @@
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import ReactQuill from "react-quill";
+import ShareWithModal from "./ShareWithModal";
 
 const TextEditor = () => {
   const { user } = useUser();
   const [content, setContent] = useState("");
   const { getToken } = useAuth();
+  const [noteLink, setNoteLink] = useState("");
+  const [privateNoteLink, setPrivateNoteLink] = useState("");
+  const [allUsers, setAllUsers] = useState();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const createNewNote = async (e: any) => {
+  const closeModal = () => setIsModalOpen(false);
+
+  const postData = {
+    username: user?.username,
+    noteId: noteLink,
+  };
+
+  const handlePrivateShare = async () => {
+    await fetch(`http://localhost:8000/note/private-share/${noteLink}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Indicate that you're sending JSON
+      },
+      body: JSON.stringify(postData),
+    })
+      .then((res) => res.json())
+      .then((data) => setPrivateNoteLink(data.privateUID))
+      .catch((err) => console.error(err));
+  };
+
+  const handleFormSubmit = async (e: any) => {
     e.preventDefault();
     const data = new FormData();
     data.set("content", content);
@@ -23,23 +48,66 @@ const TextEditor = () => {
       },
     })
       .then((res) => res.json())
-      .then((data) => console.log(data))
+      .then((data) => setNoteLink(data.toString()))
       .catch((error) => console.error(error.message));
   };
 
   useEffect(() => {
-    createNewNote();
+    fetch("http://localhost:8000/user/getAllUsers")
+      .then((res) => res.json())
+      .then((data) => setAllUsers(data));
   }, []);
+
   return (
-    <form onSubmit={createNewNote}>
-      <ReactQuill
-        value={content}
-        onChange={(newValue) => setContent(newValue)}
-      />
-      <button type="submit" disabled={!user} className="mt-4">
-        {user ? "Save" : "Login to Save"}
-      </button>
-    </form>
+    <>
+      {user && noteLink.length > 0 && (
+        <>
+          <button className="mb-8" onClick={() => setIsModalOpen(true)}>
+            Share with
+          </button>
+          {/* ----- Public Link ----- */}
+          <div>
+            {" "}
+            Public URL:
+            <a
+              className="ml-8 cursor-pointer"
+              href={`http://localhost:5173/note/${noteLink}`}
+            >
+              http://localhost:5173/note/{noteLink}
+            </a>
+          </div>
+        </>
+      )}
+      <form onSubmit={handleFormSubmit}>
+        <ReactQuill
+          value={content}
+          onChange={(newValue) => setContent(newValue)}
+          className="min-h-32"
+        />
+        <button type="submit" disabled={!user} className="mt-4">
+          {user ? "Save" : "Login to Save"}
+        </button>
+      </form>
+
+      <ShareWithModal isOpen={isModalOpen} onClose={closeModal}>
+        {allUsers?.length > 0 &&
+          allUsers.map((user: any) => (
+            <div
+              key={user._id}
+              className="flex items-center gap-4 text-lg font-semibold my-4"
+            >
+              {user.username}{" "}
+              <button onClick={handlePrivateShare}>Share</button>
+            </div>
+          ))}
+      </ShareWithModal>
+
+      {privateNoteLink && noteLink.length > 0 && (
+        <a href={`http://localhost:5173/note/private/${privateNoteLink}`}>
+          http://localhost:5173/note/private/{privateNoteLink}
+        </a>
+      )}
+    </>
   );
 };
 

@@ -44,6 +44,33 @@ export const createNote = async (req, res) => {
   }
 };
 
+export const updateNote = async (req, res) => {
+  try {
+    const { noteId, note } = req.body;
+
+    if (!note) {
+      throw new Error("Empty note received");
+    }
+
+    const objectId = new mongoose.Types.ObjectId(
+      String(noteId).substring(0, 24)
+    );
+
+    await Note.findByIdAndUpdate(
+      { _id: objectId },
+      { $set: { content: encryptNote(note) } },
+      { new: true }
+    );
+
+    return res.status(200).json("Note updated successfully");
+  } catch (error) {
+    console.error(`Failed to update note: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: `Failed to update note: ${error.message}` });
+  }
+};
+
 export const getSharedNote = async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,7 +159,6 @@ export const getPrivatelySharedNote = async (req, res) => {
         permissionLevel: isSharedWith[0].permission,
       };
 
-      console.log(response);
       return res.status(200).json(response);
     }
   } catch (error) {

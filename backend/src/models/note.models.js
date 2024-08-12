@@ -3,6 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const noteSchema = new Schema(
   {
     content: { type: String, required: true, index: true },
+    lockedBy: { type: String, default: null },
     sharedWith: [
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

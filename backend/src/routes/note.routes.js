@@ -3,6 +3,7 @@ import {
   acquireNoteLock,
   createNote,
   createPrivatelySharedNote,
+  getNotesByUsername,
   getPrivatelySharedNote,
   getSharedNote,
   releaseNoteLock,
@@ -17,6 +18,8 @@ router
   .route("/createNote")
   .post(upload.none(), ClerkExpressWithAuth(), createNote)
   .put(upload.none(), ClerkExpressWithAuth(), updateNote);
+
+router.route("/getNotes").get(ClerkExpressWithAuth(), getNotesByUsername);
 
 router.route("/share/:id").get(ClerkExpressWithAuth(), getSharedNote);
 

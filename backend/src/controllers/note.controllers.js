@@ -4,12 +4,39 @@ import { decryptNote, encryptNote } from "../utils/cryptography.js";
 import { User } from "../models/user.models.js";
 import mongoose from "mongoose";
 
+export const getNotesByUsername = async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username) {
+      throw new Error("username is required");
+    }
+
+    const existingUser = await User.findOne({ username }).populate("notes");
+    if (!existingUser) {
+      throw new Error("User not found in database");
+    }
+
+    const decryptedNotes = existingUser.notes.map((note) =>
+      decryptNote(note.content)
+    );
+
+    return res.status(200).json(decryptedNotes);
+  } catch (error) {
+    console.error(`Failed to get note by username: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: `Failed to get note by username: ${error.message}` });
+  }
+};
+
 export const createNote = async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, username } = req.body;
     if (!content) {
       throw new Error("Empty note received");
     }
+    36;
+
     const clerkUser = await clerkClient.users.getUser(req.auth.userId);
     if (!clerkUser) {
       throw new Error("User is not logged in");
@@ -33,6 +60,11 @@ export const createNote = async (req, res) => {
     // }
 
     const newNote = await Note.create({ content: encryptedNote });
+    await User.findOneAndUpdate(
+      { username },
+      { $push: { notes: newNote } },
+      { new: true }
+    );
 
     const noteUID = newNote._id;
     return res.status(200).send(noteUID);

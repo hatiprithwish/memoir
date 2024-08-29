@@ -2,7 +2,8 @@ import mongoose, { Schema } from "mongoose";
 
 const noteSchema = new Schema(
   {
-    content: { type: String, required: true, index: true },
+    documentId: { type: String, unique: true },
+    content: { type: Object, index: true },
     lockedBy: { type: String, default: null },
     sharedWith: [
       {

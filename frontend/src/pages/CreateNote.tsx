@@ -1,144 +1,103 @@
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import Quill from "quill";
+import "quill/dist/quill.snow.css";
 
-import { useAuth, useUser } from "@clerk/clerk-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Layout from "../components/layout/Layout";
-import ShareWithModal from "../components/TextEditor/ShareWithModal";
+import { io, Socket } from "socket.io-client";
+import { useParams } from "react-router-dom";
+
+const NOTE_SAVING_INTERVAL = 2000;
 
 const CreateNote = () => {
-  const { user } = useUser();
-  const { getToken } = useAuth();
-  const [noteLink, setNoteLink] = useState("");
-  const [privateNoteLink, setPrivateNoteLink] = useState("");
-  const [allUsers, setAllUsers] = useState();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const closeModal = () => setIsModalOpen(false);
-
-  // ---------- quill.js set up ----------
-  const [content, setContent] = useState("");
+  const [quill, setQuill] = useState<Quill>();
   const toolbarOptions = ["bold", "italic", "underline", "strike", "image"];
+  // ---------- quill.js set up ----------
 
-  const handlePrivateShare = async (permission: string) => {
-    const postData = {
-      username: user?.username,
-      noteId: noteLink,
-      permission: permission,
-    };
+  const wrapperRef = useCallback((wrapper: HTMLElement) => {
+    if (!wrapper) return;
+    wrapper.innerHTML = ""; // clean slate 🌚
 
-    await fetch(`http://localhost:8000/note/private-share/${noteLink}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json", // Indicate that you're sending JSON
-      },
-      body: JSON.stringify(postData),
-    })
-      .then((res) => res.json())
-      .then((data) => setPrivateNoteLink(data.privateUID))
-      .catch((err) => console.error(err));
-  };
+    const editor = document.createElement("div");
+    wrapper.append(editor);
+    const q = new Quill(editor, {
+      theme: "snow",
+      modules: { toolbar: toolbarOptions },
+    });
+    q.disable();
+    q.setText("Loading...");
+    setQuill(q);
+  }, []);
 
-  const handleFormSubmit = async (e: any) => {
-    e.preventDefault();
-    const data = new FormData();
-    data.set("username", user?.username);
-    data.set("content", content);
-
-    const token = await getToken();
-
-    await fetch("http://localhost:8000/note/createNote", {
-      method: "POST",
-      body: data,
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setNoteLink(data.toString()))
-      .catch((error) => console.error(error.message));
-  };
+  // ---------- socket.io set up ----------
+  const [socket, setSocket] = useState<Socket | undefined>();
 
   useEffect(() => {
-    fetch("http://localhost:8000/user/getAllUsers")
-      .then((res) => res.json())
-      .then((data) => setAllUsers(data));
+    const s = io(import.meta.env.VITE_REACT_BASE_API);
+    setSocket(s);
+    return () => {
+      s.disconnect();
+    };
   }, []);
+
+  // ---------- Save note automatically every 2 seconds ----------
+  useEffect(() => {
+    if (socket == null || quill == null) return;
+
+    const interval = setInterval(() => {
+      socket.emit("save-document", quill.getContents());
+    }, NOTE_SAVING_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [socket, quill]);
+
+  // ---------- Creating rooms with documentId ----------
+  const { id: documentId } = useParams();
+
+  useEffect(() => {
+    if (socket == null || quill == null) return;
+
+    socket.on("load-document", (document) => {
+      quill.setContents(document);
+      quill.enable();
+    });
+
+    socket.emit("get-document", documentId);
+  }, [socket, quill, documentId]);
+
+  // ---------- Sending quill changes to server ----------
+  useEffect(() => {
+    if (!quill || !socket) return;
+
+    const textChangeHandler = (delta: any, oldDelta: any, source: string) => {
+      if (source !== "user") return;
+      socket.emit("send-changes", delta);
+    };
+
+    quill.on("text-change", textChangeHandler);
+
+    return () => {
+      quill.off("text-change", textChangeHandler);
+    };
+  }, [socket, quill]);
+
+  // ---------- Receiving quill changes from server ----------
+  useEffect(() => {
+    if (socket == null || quill == null) return;
+
+    const receiveChangeHandler = (delta: any) => {
+      quill.updateContents(delta);
+    };
+
+    socket.on("receive-changes", receiveChangeHandler);
+
+    return () => {
+      socket.off("receive-changes", receiveChangeHandler);
+    };
+  }, [socket, quill]);
+
   return (
     <Layout>
-      <section className="p-4">
-        {user && noteLink.length > 0 && (
-          <>
-            <button className="mb-8" onClick={() => setIsModalOpen(true)}>
-              Share with
-            </button>
-            {/* ----- Public Link ----- */}
-            <div>
-              {" "}
-              Public URL:
-              <a
-                className="ml-8 cursor-pointer"
-                href={`http://localhost:5173/note/${noteLink}`}
-              >
-                http://localhost:5173/note/{noteLink}
-              </a>
-            </div>
-          </>
-        )}
-        <form
-          onSubmit={handleFormSubmit}
-          className="min-h-[70vh] flex flex-col"
-        >
-          <ReactQuill
-            value={content}
-            onChange={(newValue) => setContent(newValue)}
-            className="flex-grow"
-            modules={{ toolbar: toolbarOptions }}
-          />
-          <button
-            type="submit"
-            disabled={!user}
-            className="mt-4 bg-primary-dark text-white hover:bg-primary-dark/75 w-fit rounded-md px-3 py-1.5 font-semibold"
-          >
-            {user ? "Save" : "Login to Save"}
-          </button>
-        </form>
-
-        <ShareWithModal isOpen={isModalOpen} onClose={closeModal}>
-          {allUsers?.length > 0 &&
-            allUsers.map((user: any) => (
-              <div
-                key={user._id}
-                className="flex items-center gap-4 text-lg font-semibold my-4"
-              >
-                {user.username}
-                <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    handlePrivateShare("edit");
-                  }}
-                >
-                  Share for editing
-                </button>
-                <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    handlePrivateShare("read-only");
-                  }}
-                >
-                  Share for reading
-                </button>
-              </div>
-            ))}
-        </ShareWithModal>
-
-        {privateNoteLink && noteLink.length > 0 && (
-          <a href={`http://localhost:5173/note/private/${privateNoteLink}`}>
-            http://localhost:5173/note/private/{privateNoteLink}
-          </a>
-        )}
-      </section>
+      <section className="p-4" ref={wrapperRef}></section>
     </Layout>
   );
 };

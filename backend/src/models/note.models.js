@@ -1,23 +1,33 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const noteSchema = new Schema(
+const noteSchema = new mongoose.Schema(
   {
-    documentId: { type: String, unique: true },
-    content: { type: Object, index: true },
-    lockedBy: { type: String, default: null },
-    sharedWith: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        permission: {
-          type: String,
-          enum: ["read-only", "edit"],
-          required: true,
-          default: "read-only",
-        },
-      },
-    ],
+    id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    content: {
+      type: Object,
+    },
+    editors: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    },
+    commenters: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    },
+    viewers: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    },
   },
   { timestamps: true }
 );
 
-export const Note = mongoose.model("Note", noteSchema);
+const Note = mongoose.model("Note", noteSchema);
+
+export default Note;

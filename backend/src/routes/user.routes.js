@@ -1,10 +1,9 @@
-import Router from "express";
-import { getAllUsers, getUser } from "../controllers/user.controllers.js";
 import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
+import { Router } from "express";
+import { createNewUser } from "../controllers/user.controllers.js";
 
 const router = Router();
 
-router.route("/fetchUser").post(ClerkExpressWithAuth(), getUser);
-router.route("/getAllUsers").get(ClerkExpressWithAuth(), getAllUsers);
+router.route("/").post(ClerkExpressWithAuth(), createNewUser);
 
 export default router;

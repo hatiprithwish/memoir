@@ -29,11 +29,6 @@ const connectToDB = async () => {
 };
 connectToDB();
 
-const clerkClient = ClerkExpressWithAuth({
-  apiKey: process.env.CLERK_SECRET_KEY,
-});
-app.use(clerkClient);
-
 const server = createServer(app);
 server.listen(process.env.PORT, () => {
   console.log(`server listening on: ${process.env.PORT}`);

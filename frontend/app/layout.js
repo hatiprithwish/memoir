@@ -1,13 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  SignIn,
-  UserButton,
-} from "@clerk/nextjs";
-import Link from "next/link";
+import { ClerkProvider } from "@clerk/nextjs";
+import Navbar from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,26 +15,8 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <html lang="en">
         <body className={`${inter.className} min-h-screen flex flex-col`}>
-          <header className="p-4 flex gap-8 justify-end items-center bg-primary-dark">
-            <Link
-              href="/create-note"
-              className="text-sm text-white hover:text-semibold hover:text-primary-light transition-all"
-            >
-              Create Note
-            </Link>
-            <SignedOut>
-              <Link
-                href="/sign-in"
-                className="text-sm text-white hover:text-semibold hover:text-primary-light transition-all"
-              >
-                Sign in
-              </Link>
-            </SignedOut>
-            <UserButton />
-          </header>
-          <main className="flex flex-col justify-center items-center flex-1">
-            {children}
-          </main>
+          <Navbar />
+          <main className="flex flex-col items-center flex-1">{children}</main>
         </body>
       </html>
     </ClerkProvider>

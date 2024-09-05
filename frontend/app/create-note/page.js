@@ -7,6 +7,7 @@ import { io } from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { handleNotePublish } from "@/utils";
 
 const NOTE_SAVING_INTERVAL = 2000;
 
@@ -18,6 +19,7 @@ const CreateNotePage = () => {
   const noteCreatedRef = useRef(false);
   const [noteId, setNoteId] = useState(null);
   const [savingStatus, setSavingStatus] = useState("saving...");
+  const [publishStatus, setPublishStatus] = useState(false);
 
   // Quill Setup
   const wrapperRef = useCallback((wrapper) => {
@@ -68,12 +70,22 @@ const CreateNotePage = () => {
       <div ref={wrapperRef}></div>
 
       <div className="flex justify-between items-center mt-4">
-        <Link
-          href={`/note/${noteId}`}
-          className="bg-primary-light text-primary-dark px-4 py-2 rounded-md"
-        >
-          View Note
-        </Link>
+        <div className="flex gap-4 items-stretch">
+          <Link
+            href={`/note/${noteId}`}
+            className="bg-primary-light text-primary-dark px-4 py-2 rounded-md"
+          >
+            View Note
+          </Link>
+          <button
+            className="bg-primary-light text-primary-dark px-4 py-2 rounded-md"
+            onClick={async () => {
+              setPublishStatus(await handleNotePublish(noteId, publishStatus));
+            }}
+          >
+            {publishStatus ? "Published" : "Publish"}
+          </button>
+        </div>
         <p className="text-sm text-gray-500">{savingStatus}</p>
       </div>
     </section>

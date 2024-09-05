@@ -7,14 +7,21 @@ const noteSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    content: {
+      type: Object,
+    },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    content: {
-      type: Object,
-    },
+    permissions: [
+      {
+        _id: false,
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        permissionLevel: Number,
+      },
+    ],
     editors: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     },
@@ -23,6 +30,10 @@ const noteSchema = new mongoose.Schema(
     },
     viewers: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    },
+    isPublic: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

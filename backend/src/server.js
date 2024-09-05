@@ -50,6 +50,7 @@ socket.on("connection", (socket) => {
     const note = await Note.create({
       id: noteId,
       owner: existingUser._id,
+      permissions: [{ user: existingUser._id, permissionLevel: 3 }],
     });
 
     socket.join(noteId);
@@ -62,7 +63,7 @@ socket.on("connection", (socket) => {
       { new: true }
     );
     // console.log("note updated");
-    socket.broadcast.to(noteId).emit("receive-changes", note.content);
+    socket.broadcast.to(noteId).emit("receive-changes", note?.content);
   });
 
   socket.on("load-note", async (noteId) => {

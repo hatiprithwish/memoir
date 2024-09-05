@@ -16,6 +16,7 @@ const SingleNotePage = () => {
   const toolbarOptions = ["bold", "italic", "underline", "strike", "image"];
   const [socket, setSocket] = useState();
   const [savingStatus, setSavingStatus] = useState("saving...");
+  const [isViewingAllowed, setIsViewingAllowed] = useState(false);
 
   // Quill Setup
   const wrapperRef = useCallback((wrapper) => {
@@ -98,6 +99,21 @@ const SingleNotePage = () => {
     return () => clearInterval(interval);
   }, [socket, quill, noteId]);
 
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}note/permission?noteId=${noteId}&userId=${user.id}`
+        );
+        const data = await response.json();
+        console.log(data);
+      } catch (error) {
+        console.error(`Error in fetching permission: ${error.message}`);
+      }
+    };
+
+    checkPermissions();
+  }, [user]);
   return (
     <section className="p-4 w-full">
       <div ref={wrapperRef}></div>

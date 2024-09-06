@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Note from "../models/note.models.js";
 import User from "../models/user.models.js";
 
@@ -69,6 +70,98 @@ export const getPermissionLevelByUserId = async (req, res) => {
       );
   } catch (error) {
     console.error(`Error in fetching permission level: ${error.message}`);
+    res.status(500).json(error);
+  }
+};
+
+export const getNoteByNoteId = async (req, res) => {
+  try {
+    const { noteId } = req.query;
+    if (!noteId) {
+      throw new Error("Note ID is required");
+    }
+
+    const note = await Note.findOne({ id: noteId });
+    if (!note) {
+      throw new Error("Note not found");
+    }
+
+    return res.status(200).json(note);
+  } catch (error) {
+    console.error(`Error fetching note by noteId: ${error.message}`);
+    res.status(500).json(error);
+  }
+};
+
+export const addOrUpdatePermission = async (req, res) => {
+  try {
+    const { userEmail, permission, noteId } = req.body;
+    if (!userEmail || !permission || !noteId) {
+      throw new Error("userEmail, permission and noteId are required");
+    }
+
+    const existingUser = await User.findOne({ email: userEmail });
+    if (!existingUser) return res.status(404).json("User doesn't exist");
+
+    const note = await Note.findOneAndUpdate(
+      { id: noteId },
+      {
+        $push: {
+          permissions: {
+            user: existingUser,
+            permissionLevel:
+              permission === "viewer" ? 0 : permission === "commenter" ? 1 : 2,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    const userInPermissionsArray = note.permissions.some((item) => {
+      console.log(item.user._id);
+      console.log(existingUser._id);
+      return item.user._id.equals(existingUser._id); // Check if user ID matches
+    });
+
+    console.log(userInPermissionsArray);
+
+    if (userInPermissionsArray) {
+      await Note.findOneAndUpdate(
+        {
+          _id: note._id,
+          "permissions.user": new mongoose.Types.ObjectId(existingUser._id),
+        },
+        {
+          $set: {
+            "permissions.$.permissionLevel":
+              permission === "viewer" ? 0 : permission === "commenter" ? 1 : 2,
+          },
+        },
+        { upsert: true }
+      );
+    } else {
+      await Note.updateOne(
+        { _id: note._id },
+        {
+          $push: {
+            permissions: {
+              user: existingUser,
+              permissionLevel:
+                permission === "viewer"
+                  ? 0
+                  : permission === "commenter"
+                  ? 1
+                  : 2,
+            },
+          },
+        },
+        { new: true }
+      );
+    }
+
+    return res.status(200).json("permission added successfully");
+  } catch (error) {
+    console.error(`Error adding/updating note permission: ${error.message}`);
     res.status(500).json(error);
   }
 };

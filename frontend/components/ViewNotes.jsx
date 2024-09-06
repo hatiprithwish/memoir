@@ -45,7 +45,6 @@ const ViewNotes = () => {
 
     const getNotes = async () => {
       const token = await getToken();
-      console.log(token);
 
       const res = await fetch(`http://localhost:8000/note`, {
         method: "GET",
@@ -73,7 +72,6 @@ const ViewNotes = () => {
         <>
           <h1 className="text-2xl font-bold">Your Notes</h1>
           {notes.map((note) => {
-            // console.log(note?.content?.ops[0]?.insert);
             return (
               <div
                 onClick={() => {

@@ -4,6 +4,8 @@ import {
   getPermissionLevelByUserId,
   getNotesByUser,
   patchNote,
+  addOrUpdatePermission,
+  getNoteByNoteId,
 } from "../controllers/note.controllers.js";
 
 const router = Router();
@@ -13,6 +15,11 @@ router
   .get(ClerkExpressRequireAuth(), getNotesByUser)
   .patch(patchNote);
 
-router.route("/permission").get(getPermissionLevelByUserId);
+router.route("/getNoteByNoteId").get(getNoteByNoteId);
+
+router
+  .route("/permission")
+  .get(getPermissionLevelByUserId)
+  .post(addOrUpdatePermission);
 
 export default router;

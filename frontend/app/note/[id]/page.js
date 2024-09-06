@@ -24,6 +24,7 @@ const SingleNotePage = () => {
   const [permissionLevel, setPermissionLevel] = useState(null);
   const [emailInput, setEmailInput] = useState("");
   const [selectedPermission, setSelectedPermission] = useState("");
+  const [note, setNote] = useState(null);
 
   // Quill Setup
   const wrapperRef = useCallback((wrapper) => {
@@ -143,14 +144,34 @@ const SingleNotePage = () => {
     }
   };
 
+  // Get Note by Id
+  useEffect(() => {
+    if (!noteId) return;
+    const fetchNote = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}note/getNoteByNoteId?noteId=${noteId}`
+        );
+        const data = await response.json();
+        console.log(data);
+        setNote(data);
+      } catch (error) {
+        console.error(`Error fetching note by noteId: ${error.message}`);
+      }
+    };
+    fetchNote();
+  }, [noteId]);
+
   return (
     <section className="p-4 w-full text-center">
       {!user ? (
         <p>Please sign in to see this note</p>
       ) : permissionLevel === null ? (
         <p>Loading...</p>
-      ) : permissionLevel === -1 ? (
+      ) : permissionLevel === -1 && !note?.isPublic ? (
         <p>You don't have access to this note</p>
+      ) : permissionLevel === 0 || (note?.isPublic && permissionLevel < 1) ? (
+        <article>{note?.content?.ops[0]?.insert}</article>
       ) : (
         <>
           <div ref={wrapperRef}></div>
@@ -158,7 +179,7 @@ const SingleNotePage = () => {
         </>
       )}
 
-      {permissionLevel === 0 && (
+      {permissionLevel === 0 && !note?.isPublic && (
         <div className="bg-red-200 rounded-full w-fit text-sm px-2">
           You can only view this note
         </div>
@@ -226,11 +247,12 @@ const SingleNotePage = () => {
             </PopoverContent>
           </Popover>
         )}
-        {permissionLevel > 0 && (
-          <button className="bg-primary-light hover:bg-primary-light/75 transition-all text-primary-dark px-4 py-2 rounded-md">
-            Comment
-          </button>
-        )}
+        {permissionLevel > 0 ||
+          (note?.isPublic && (
+            <button className="bg-primary-light hover:bg-primary-light/75 transition-all text-primary-dark px-4 py-2 rounded-md">
+              Comment
+            </button>
+          ))}
       </div>
     </section>
   );

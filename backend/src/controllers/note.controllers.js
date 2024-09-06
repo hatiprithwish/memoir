@@ -74,6 +74,25 @@ export const getPermissionLevelByUserId = async (req, res) => {
   }
 };
 
+export const getNoteByNoteId = async (req, res) => {
+  try {
+    const { noteId } = req.query;
+    if (!noteId) {
+      throw new Error("Note ID is required");
+    }
+
+    const note = await Note.findOne({ id: noteId });
+    if (!note) {
+      throw new Error("Note not found");
+    }
+
+    return res.status(200).json(note);
+  } catch (error) {
+    console.error(`Error fetching note by noteId: ${error.message}`);
+    res.status(500).json(error);
+  }
+};
+
 export const addOrUpdatePermission = async (req, res) => {
   try {
     const { userEmail, permission, noteId } = req.body;

@@ -6,6 +6,11 @@ import { useParams } from "next/navigation";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { io } from "socket.io-client";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const NOTE_SAVING_INTERVAL = 2000;
 
@@ -16,7 +21,9 @@ const SingleNotePage = () => {
   const toolbarOptions = ["bold", "italic", "underline", "strike", "image"];
   const [socket, setSocket] = useState();
   const [savingStatus, setSavingStatus] = useState("saving...");
-  const [isViewingAllowed, setIsViewingAllowed] = useState(false);
+  const [permissionLevel, setPermissionLevel] = useState(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [selectedPermission, setSelectedPermission] = useState("");
 
   // Quill Setup
   const wrapperRef = useCallback((wrapper) => {
@@ -49,7 +56,7 @@ const SingleNotePage = () => {
     if (!socket || !quill) return;
     const loadNoteHandler = (note) => {
       quill.setContents(note);
-      quill.enable();
+      if (permissionLevel > 1) quill.enable(); // only editors and owner can edit
     };
     socket.emit("load-note", noteId);
     socket.on("get-note", loadNoteHandler);
@@ -99,14 +106,16 @@ const SingleNotePage = () => {
     return () => clearInterval(interval);
   }, [socket, quill, noteId]);
 
+  // Check permission Level
   useEffect(() => {
     const checkPermissions = async () => {
+      if (!user) return;
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}note/permission?noteId=${noteId}&userId=${user.id}`
         );
         const data = await response.json();
-        console.log(data);
+        setPermissionLevel(data);
       } catch (error) {
         console.error(`Error in fetching permission: ${error.message}`);
       }
@@ -114,10 +123,115 @@ const SingleNotePage = () => {
 
     checkPermissions();
   }, [user]);
+
+  // Private share
+  const handlePrivateShare = async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}note/permission`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          noteId: noteId,
+          userEmail: emailInput,
+          permission: selectedPermission,
+        }),
+      });
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
   return (
-    <section className="p-4 w-full">
-      <div ref={wrapperRef}></div>
-      <p className="text-sm text-gray-500">{savingStatus}</p>
+    <section className="p-4 w-full text-center">
+      {!user ? (
+        <p>Please sign in to see this note</p>
+      ) : permissionLevel === null ? (
+        <p>Loading...</p>
+      ) : permissionLevel === -1 ? (
+        <p>You don't have access to this note</p>
+      ) : (
+        <>
+          <div ref={wrapperRef}></div>
+          <p className="text-sm text-gray-500">{savingStatus}</p>{" "}
+        </>
+      )}
+
+      {permissionLevel === 0 && (
+        <div className="bg-red-200 rounded-full w-fit text-sm px-2">
+          You can only view this note
+        </div>
+      )}
+
+      <div className="flex justify-center items-center gap-6 ">
+        {/* For owners */}
+        {permissionLevel === 3 && (
+          <Popover>
+            <PopoverTrigger className="bg-primary-light hover:bg-primary-light/75 transition-all text-primary-dark px-4 py-2 rounded-md">
+              Share
+            </PopoverTrigger>
+            <PopoverContent>
+              <textarea
+                rows={1}
+                placeholder="Enter your friend's email"
+                className="w-full p-1"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+              />
+              <div className="mt-3 flex flex-col">
+                Permission Level:
+                <div className="flex gap-2 text-sm mt-1">
+                  <label>
+                    <input
+                      type="radio"
+                      name="permission"
+                      value="viewer"
+                      checked={selectedPermission === "viewer"}
+                      onChange={() => setSelectedPermission("viewer")}
+                      className="mr-1 mt-1 inline-block"
+                    />
+                    Viewer
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="permission"
+                      value="commenter"
+                      checked={selectedPermission === "commenter"}
+                      onChange={() => setSelectedPermission("commenter")}
+                      className="mr-1 mt-1 inline-block"
+                    />
+                    Commenter
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="permission"
+                      value="editor"
+                      checked={selectedPermission === "editor"}
+                      onChange={() => setSelectedPermission("editor")}
+                      className="mr-1 mt-1 inline-block"
+                    />
+                    Editor
+                  </label>
+                </div>
+                <button
+                  className="self-end text-xs bg-zinc-300 hover:bg-zinc-300/50 transition-all text-primary-dark px-1.5 py-0.5 rounded-md mt-4"
+                  onClick={handlePrivateShare}
+                >
+                  Save
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+        {permissionLevel > 0 && (
+          <button className="bg-primary-light hover:bg-primary-light/75 transition-all text-primary-dark px-4 py-2 rounded-md">
+            Comment
+          </button>
+        )}
+      </div>
     </section>
   );
 };

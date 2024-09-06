@@ -4,11 +4,13 @@ import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
 import { createServer } from "node:http";
-import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import Note from "./models/note.models.js";
 import User from "./models/user.models.js";
 
 const app = express();
+
+app.get("/", (req, res) => res.send("Hello World"));
+
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN,

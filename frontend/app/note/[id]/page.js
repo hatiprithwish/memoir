@@ -11,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import EventCreationForm from "@/components/GCal/EventCreationForm";
 
 const NOTE_SAVING_INTERVAL = 2000;
 
@@ -153,7 +154,6 @@ const SingleNotePage = () => {
           `${process.env.NEXT_PUBLIC_API_URL}note/getNoteByNoteId?noteId=${noteId}`
         );
         const data = await response.json();
-        console.log(data);
         setNote(data);
       } catch (error) {
         console.error(`Error fetching note by noteId: ${error.message}`);
@@ -164,11 +164,11 @@ const SingleNotePage = () => {
 
   return (
     <section className="p-4 w-full text-center">
-      {!user ? (
-        <p>Please sign in to see this note</p>
-      ) : permissionLevel === null ? (
+      {!user && <p>Please sign in to see this note</p>}
+      {user && <EventCreationForm />}
+      {permissionLevel === null ? (
         <p>Loading...</p>
-      ) : permissionLevel === -1 && !note?.isPublic ? (
+      ) : permissionLevel === -1 || note?.isPublic ? (
         <p>You don't have access to this note</p>
       ) : permissionLevel === 0 || (note?.isPublic && permissionLevel < 1) ? (
         <article>{note?.content?.ops[0]?.insert}</article>

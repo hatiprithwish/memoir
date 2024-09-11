@@ -6,7 +6,9 @@ import mongoose from "mongoose";
 import { createServer } from "node:http";
 import Note from "./models/note.models.js";
 import User from "./models/user.models.js";
+import dotenv from "dotenv";
 
+dotenv.config({ path: "./.env.local" });
 const app = express();
 
 app.get("/", (req, res) => res.send("Hello World"));

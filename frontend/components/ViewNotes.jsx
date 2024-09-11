@@ -57,7 +57,7 @@ const ViewNotes = () => {
       setNotes(notes);
     };
     getNotes();
-  }, [user]);
+  }, [user, getToken, isSignedIn]);
 
   return (
     <section className="p-4 space-y-4">

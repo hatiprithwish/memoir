@@ -28,21 +28,24 @@ const SingleNotePage = () => {
   const [note, setNote] = useState(null);
 
   // Quill Setup
-  const wrapperRef = useCallback((wrapper) => {
-    if (!wrapper) return;
-    wrapper.innerHTML = ""; // clean slate everytime🌚
+  const wrapperRef = useCallback(
+    (wrapper) => {
+      if (!wrapper) return;
+      wrapper.innerHTML = ""; // clean slate everytime🌚
 
-    const editor = document.createElement("div");
-    wrapper.append(editor);
-    const q = new Quill(editor, {
-      theme: "snow",
-      modules: { toolbar: toolbarOptions },
-    });
+      const editor = document.createElement("div");
+      wrapper.append(editor);
+      const q = new Quill(editor, {
+        theme: "snow",
+        modules: { toolbar: toolbarOptions },
+      });
 
-    q.disable();
-    q.setText("Loading...");
-    setQuill(q);
-  }, []);
+      q.disable();
+      q.setText("Loading...");
+      setQuill(q);
+    },
+    [toolbarOptions]
+  );
 
   // Socket.io Setup
   useEffect(() => {
@@ -67,7 +70,7 @@ const SingleNotePage = () => {
       socket.off("load-note", noteId);
       socket.off("get-note", loadNoteHandler);
     };
-  }, [socket, quill, noteId]);
+  }, [socket, quill, noteId, permissionLevel]);
 
   // Send changes
   useEffect(() => {
@@ -124,7 +127,7 @@ const SingleNotePage = () => {
     };
 
     checkPermissions();
-  }, [user]);
+  }, [user, noteId]);
 
   // Private share
   const handlePrivateShare = async () => {
@@ -169,7 +172,7 @@ const SingleNotePage = () => {
       {permissionLevel === null ? (
         <p>Loading...</p>
       ) : permissionLevel === -1 || note?.isPublic ? (
-        <p>You don't have access to this note</p>
+        <p>You do not have access to this note</p>
       ) : permissionLevel === 0 || (note?.isPublic && permissionLevel < 1) ? (
         <article>{note?.content?.ops[0]?.insert}</article>
       ) : (

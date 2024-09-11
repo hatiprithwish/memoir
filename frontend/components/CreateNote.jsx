@@ -11,7 +11,7 @@ import { handleNotePublish } from "@/utils";
 
 const NOTE_SAVING_INTERVAL = 2000;
 
-const CreateNotePage = () => {
+const CreateNote = () => {
   const { user } = useUser();
   const [quill, setQuill] = useState(null);
   const toolbarOptions = ["bold", "italic", "underline", "strike", "image"];
@@ -92,4 +92,4 @@ const CreateNotePage = () => {
   );
 };
 
-export default CreateNotePage;
+export default CreateNote;

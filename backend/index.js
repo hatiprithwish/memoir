@@ -15,7 +15,7 @@ app.get("/", (req, res) => res.send("Hello World"));
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: "memoir-frontend.vercel.app",
     credentials: true,
   })
 );

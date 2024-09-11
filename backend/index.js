@@ -39,7 +39,7 @@ server.listen(process.env.PORT, () => {
 });
 export const socket = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST"],
   },
 });

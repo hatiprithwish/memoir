@@ -17,7 +17,7 @@ const ViewNotes = () => {
 
     const getUserData = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/user`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}user`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -46,7 +46,7 @@ const ViewNotes = () => {
     const getNotes = async () => {
       const token = await getToken();
 
-      const res = await fetch(`http://localhost:8000/note`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}note`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

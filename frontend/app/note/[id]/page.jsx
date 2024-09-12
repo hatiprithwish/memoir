@@ -28,24 +28,21 @@ const SingleNotePage = () => {
   const [note, setNote] = useState(null);
 
   // Quill Setup
-  const wrapperRef = useCallback(
-    (wrapper) => {
-      if (!wrapper) return;
-      wrapper.innerHTML = ""; // clean slate everytime🌚
+  const wrapperRef = useCallback((wrapper) => {
+    if (!wrapper) return;
+    wrapper.innerHTML = ""; // clean slate everytime🌚
 
-      const editor = document.createElement("div");
-      wrapper.append(editor);
-      const q = new Quill(editor, {
-        theme: "snow",
-        modules: { toolbar: toolbarOptions },
-      });
+    const editor = document.createElement("div");
+    wrapper.append(editor);
+    const q = new Quill(editor, {
+      theme: "snow",
+      modules: { toolbar: toolbarOptions },
+    });
 
-      q.disable();
-      q.setText("Loading...");
-      setQuill(q);
-    },
-    [toolbarOptions]
-  );
+    q.disable();
+    q.setText("Loading...");
+    setQuill(q);
+  }, []);
 
   // Socket.io Setup
   useEffect(() => {

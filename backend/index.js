@@ -10,7 +10,7 @@ dotenv.config({ path: "./.env.local" });
 const app = express();
 
 app.use(
-  cors({ origin: "https://memoir-frontend.vercel.app/", credentials: true })
+  cors({ origin: "https://memoir-frontend.vercel.app", credentials: true })
 );
 app.use(express.json());
 app.use(express.static("public"));

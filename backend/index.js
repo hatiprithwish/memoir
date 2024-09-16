@@ -9,7 +9,7 @@ import initializeSocket from "./services/socket.io.services.js";
 dotenv.config({ path: "./.env.local" });
 const app = express();
 
-app.use(cors({ origin: "memoir-frontend.vercel.app" }));
+app.use(cors({ origin: "memoir-frontend.vercel.app", credentials: true }));
 app.use(express.json());
 app.use(express.static("public"));
 app.use(cookieParser());

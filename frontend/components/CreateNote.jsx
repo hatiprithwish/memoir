@@ -38,7 +38,9 @@ const CreateNote = () => {
 
   // Socket.io Setup
   useEffect(() => {
-    const s = io(process.env.NEXT_PUBLIC_API_URL);
+    const s = io(process.env.NEXT_PUBLIC_API_URL, {
+      path: "web-socket",
+    });
     setSocket(s);
     return () => {
       s.disconnect();

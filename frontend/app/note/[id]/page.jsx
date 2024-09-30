@@ -49,7 +49,8 @@ const SingleNotePage = () => {
   // Socket.io Setup
   useEffect(() => {
     const s = io(
-      "https://memoir-server.vercel.app"
+      "http://localhost:8000"
+      // "https://memoir-server.vercel.app"
       //    {
       //   path: "/web-socket",
       // }

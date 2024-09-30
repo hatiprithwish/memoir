@@ -5,7 +5,7 @@ import User from "../models/user.models.js";
 const initializeSocket = (server) => {
   const socket = new Server(server, {
     cors: {
-      origin: "https://memoir-frontend.vercel.app",
+      origin: ["https://memoir-frontend.vercel.app", "http://localhost:3000"],
       methods: ["GET", "POST"],
     },
     path: "/web-socket",

@@ -6,6 +6,7 @@ import {
   patchNote,
   addOrUpdatePermission,
   getNoteByNoteId,
+  askQuestionsToAI,
 } from "../controllers/note.controllers.js";
 
 const router = Router();
@@ -21,5 +22,7 @@ router
   .route("/permission")
   .get(getPermissionLevelByUserId)
   .post(addOrUpdatePermission);
+
+router.route("/ask-ai").post(askQuestionsToAI);
 
 export default router;

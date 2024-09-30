@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Note from "../models/note.models.js";
 import User from "../models/user.models.js";
+import openai from "../services/openAI.services.js";
 
 export const getNotesByUser = async (req, res) => {
   try {
@@ -162,6 +163,30 @@ export const addOrUpdatePermission = async (req, res) => {
     return res.status(200).json("permission added successfully");
   } catch (error) {
     console.error(`Error adding/updating note permission: ${error.message}`);
+    res.status(500).json(error);
+  }
+};
+
+export const askQuestionsToAI = async (req, res) => {
+  try {
+    const { question } = req.body;
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "assistant", content: question }],
+      temperature: 1,
+      max_tokens: 2048,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+      response_format: {
+        type: "text",
+      },
+    });
+
+    console.log(response);
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
     res.status(500).json(error);
   }
 };

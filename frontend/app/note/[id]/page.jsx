@@ -12,6 +12,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import EventCreationForm from "@/components/GCal/EventCreationForm";
+import { Button } from "@/components/ui/button";
+import Modal from "@/components/ui/modal";
 
 const NOTE_SAVING_INTERVAL = 2000;
 
@@ -46,7 +48,9 @@ const SingleNotePage = () => {
 
   // Socket.io Setup
   useEffect(() => {
-    const s = io(process.env.NEXT_PUBLIC_WEB_SOCKET_URL);
+    const s = io(process.env.NEXT_PUBLIC_WEB_SOCKET_URL, {
+      path: "/web-socket",
+    });
     setSocket(s);
     return () => {
       s.disconnect();
@@ -162,10 +166,58 @@ const SingleNotePage = () => {
     fetchNote();
   }, [noteId]);
 
+  const [isOpen, setIsOpen] = useState(false);
+  const [summary, setSummary] = useState();
+
+  const handleAISummary = async () => {
+    if (!quill || !noteId) return;
+
+    // Get the current content of the note
+    const noteContent = quill.getContents();
+
+    // Prepare the question for the AI
+    const question = `${JSON.stringify(noteContent)} --summarize`;
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}note/ask-ai`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ question }), // Send the question in the request body
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to summarize the note");
+      }
+
+      const data = await response.json();
+      setIsOpen(true);
+      setSummary(data.choices[0].message.content);
+      console.log("AI Summary:", data.choices[0].message.content);
+      // Handle the AI summary response as needed (e.g., display it to the user)
+    } catch (error) {
+      console.error("Error summarizing note:", error.message);
+    }
+  };
+
   return (
     <section className="p-4 w-full text-center">
       {!user && <p>Please sign in to see this note</p>}
-      {user && <EventCreationForm />}
+      {user && (
+        <div className="my-4 flex gap-6 justify-center">
+          <EventCreationForm />
+          <Button onClick={handleAISummary}>Summarize with AI</Button>
+          <Modal
+            isOpen={isOpen}
+            onClose={() => setIsOpen(false)}
+            children={summary}
+          />
+        </div>
+      )}
       {permissionLevel === null ? (
         <p>Loading...</p>
       ) : permissionLevel === -1 || note?.isPublic ? (
@@ -185,7 +237,7 @@ const SingleNotePage = () => {
         </div>
       )}
 
-      <div className="flex justify-center items-center gap-6 ">
+      <div className="flex justify-center items-center gap-6">
         {/* For owners */}
         {permissionLevel === 3 && (
           <Popover>

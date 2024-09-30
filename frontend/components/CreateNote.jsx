@@ -38,9 +38,12 @@ const CreateNote = () => {
 
   // Socket.io Setup
   useEffect(() => {
-    const s = io("https://memoir-server.vercel.app", {
-      path: "/web-socket",
-    });
+    const s = io(
+      "https://memoir-server.vercel.app"
+      //   {
+      //   path: "/web-socket",
+      // }
+    );
     setSocket(s);
     return () => {
       s.disconnect();

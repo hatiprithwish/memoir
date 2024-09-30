@@ -8,7 +8,7 @@ const initializeSocket = (server) => {
       origin: ["https://memoir-frontend.vercel.app", "http://localhost:3000"],
       methods: ["GET", "POST"],
     },
-    path: "/web-socket",
+    // path: "/web-socket",
   });
 
   socket.on("connection", (socket) => {

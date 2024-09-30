@@ -211,11 +211,9 @@ const SingleNotePage = () => {
         <div className="my-4 flex gap-6 justify-center">
           <EventCreationForm />
           <Button onClick={handleAISummary}>Summarize with AI</Button>
-          <Modal
-            isOpen={isOpen}
-            onClose={() => setIsOpen(false)}
-            children={summary}
-          />
+          <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+            {summary}
+          </Modal>
         </div>
       )}
       {permissionLevel === null ? (

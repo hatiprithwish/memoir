@@ -39,7 +39,8 @@ const CreateNote = () => {
   // Socket.io Setup
   useEffect(() => {
     const s = io(
-      "http://localhost:8000"
+      "https://memoir-production.up.railway.app"
+      // "http://localhost:8000"
       // "https://memoir-server.vercel.app"
       //   {
       //   path: "/web-socket",

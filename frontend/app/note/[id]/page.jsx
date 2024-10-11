@@ -28,6 +28,7 @@ const SingleNotePage = () => {
   const [emailInput, setEmailInput] = useState("");
   const [selectedPermission, setSelectedPermission] = useState("");
   const [note, setNote] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Quill Setup
   const wrapperRef = useCallback((wrapper) => {
@@ -130,6 +131,7 @@ const SingleNotePage = () => {
 
   // Private share
   const handlePrivateShare = async () => {
+    setIsLoading(true);
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}note/permission`, {
         method: "POST",
@@ -144,6 +146,8 @@ const SingleNotePage = () => {
       });
     } catch (error) {
       console.error(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 

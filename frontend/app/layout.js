@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
         <html lang="en">
           <body className={`${inter.className} min-h-screen flex flex-col`}>
             <Navbar />
-            <main className="flex flex-col items-center flex-1">
+            <main className="flex flex-col items-center flex-1 w-full max-w-6xl mx-auto">
               {children}
             </main>
           </body>
